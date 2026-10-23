@@ -6,9 +6,9 @@ $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $searches = @(
-    @{ Name = 'VW LT 28/35';      Query = 'volkswagen lt'; From = 2001; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
-    @{ Name = 'VW LT 28/35';      Query = 'lt28';          From = 2001; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
-    @{ Name = 'VW LT 28/35';      Query = 'lt35';          From = 2001; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
+    @{ Name = 'VW LT 28/35';      Query = 'volkswagen lt'; From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
+    @{ Name = 'VW LT 28/35';      Query = 'lt28';          From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
+    @{ Name = 'VW LT 28/35';      Query = 'lt35';          From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
     @{ Name = 'Sprinter 210-312'; Query = 'sprinter';      From = 1997; To = 1999; Match = '\b(210|212|214|308|310|312)\s*d?\b' }
 )
 
