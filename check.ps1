@@ -9,7 +9,7 @@ $searches = @(
     @{ Name = 'VW LT 28/35';      Query = 'volkswagen lt'; From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
     @{ Name = 'VW LT 28/35';      Query = 'lt28';          From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
     @{ Name = 'VW LT 28/35';      Query = 'lt35';          From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
-    @{ Name = 'Sprinter 210-312'; Query = 'sprinter';      From = 1997; To = 1999; Match = '\b(210|212|308|310|312)\s*d?\b' }
+    @{ Name = 'Sprinter 210-312'; Query = 'sprinter';      From = 1997; To = 1999; Match = '\b(210|211|212|308|310|311|312)\s*d?\b' }
 )
 
 $statePath = Join-Path $PSScriptRoot 'seen.json'
