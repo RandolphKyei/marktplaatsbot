@@ -9,7 +9,7 @@ $searches = @(
     @{ Name = 'VW LT 28/35';      Query = 'volkswagen lt'; From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
     @{ Name = 'VW LT 28/35';      Query = 'lt28';          From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
     @{ Name = 'VW LT 28/35';      Query = 'lt35';          From = 2000; To = 2006; Match = '\blt\s*-?\s*(28|35)' }
-    @{ Name = 'Sprinter 210-312'; Query = 'sprinter';      From = 1997; To = 1999; Match = '\b(210|211|212|308|310|311|312)\s*d?\b' }
+    @{ Name = 'Sprinter 210-312'; Query = 'sprinter';      From = 1997; To = 2006; Match = '\b(210|211|212|308|310|311|312)\s*d?\b' }
 )
 
 $statePath = Join-Path $PSScriptRoot 'seen.json'
@@ -23,7 +23,8 @@ $headers = @{ 'User-Agent' = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'; 'Accep
 $found = [ordered]@{}
 
 # Campers and some vans have no constructionYear attribute, so the year-filtered search misses them.
-# Second pass without the year filter: vehicle listings only, year taken from the text (or unknown).
+# Second pass without the year filter, year taken from the text (or unknown).
+# Vehicle listings only (no parts, models or caravans like the Beyerland Sprinter).
 $vehiclePath = '^/v/(auto-s|caravans-en-kamperen/campers)/'
 
 foreach ($s in $searches) {
@@ -33,11 +34,10 @@ foreach ($s in $searches) {
     if ($yearFilter) { $url += '&attributeRanges%5B%5D=constructionYear%3A' + $s.From + '%3A' + $s.To }
     $res = Invoke-RestMethod -Uri $url -Headers $headers -TimeoutSec 30
     foreach ($l in $res.listings) {
-        if (-not $l.itemId -or -not $l.vipUrl) { continue }
+        if (-not $l.itemId -or $l.vipUrl -notmatch $vehiclePath) { continue }
         $text = "$($l.title) $($l.categorySpecificDescription) $($l.description)"
         $year = ($l.attributes | Where-Object key -eq 'constructionYear' | Select-Object -First 1).value
         if (-not $year) {
-            if ($l.vipUrl -notmatch $vehiclePath) { continue }
             $year = if ($text -match '\b(19[5-9]\d|20[0-2]\d)\b') { $Matches[1] } else { '?' }
         }
         if ($year -ne '?' -and ([int]$year -lt $s.From -or [int]$year -gt $s.To)) { continue }
