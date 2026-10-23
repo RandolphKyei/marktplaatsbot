@@ -22,16 +22,26 @@ $firstRun = $seen.Count -eq 0
 $headers = @{ 'User-Agent' = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'; 'Accept' = 'application/json' }
 $found = [ordered]@{}
 
+# Campers and some vans have no constructionYear attribute, so the year-filtered search misses them.
+# Second pass without the year filter: vehicle listings only, year taken from the text (or unknown).
+$vehiclePath = '^/v/(auto-s|caravans-en-kamperen/campers)/'
+
 foreach ($s in $searches) {
+  foreach ($yearFilter in $true, $false) {
     $url = 'https://www.marktplaats.nl/lrp/api/search?query=' + [uri]::EscapeDataString($s.Query) +
-           '&limit=100&offset=0&sortBy=SORT_INDEX&sortOrder=DECREASING' +
-           '&attributeRanges%5B%5D=constructionYear%3A' + $s.From + '%3A' + $s.To
+           '&limit=100&offset=0&sortBy=SORT_INDEX&sortOrder=DECREASING'
+    if ($yearFilter) { $url += '&attributeRanges%5B%5D=constructionYear%3A' + $s.From + '%3A' + $s.To }
     $res = Invoke-RestMethod -Uri $url -Headers $headers -TimeoutSec 30
     foreach ($l in $res.listings) {
         if (-not $l.itemId -or -not $l.vipUrl) { continue }
+        $text = "$($l.title) $($l.categorySpecificDescription) $($l.description)"
         $year = ($l.attributes | Where-Object key -eq 'constructionYear' | Select-Object -First 1).value
-        if (-not $year -or [int]$year -lt $s.From -or [int]$year -gt $s.To) { continue }
-        if (("$($l.title) $($l.description)") -notmatch $s.Match) { continue }
+        if (-not $year) {
+            if ($l.vipUrl -notmatch $vehiclePath) { continue }
+            $year = if ($text -match '\b(19[5-9]\d|20[0-2]\d)\b') { $Matches[1] } else { '?' }
+        }
+        if ($year -ne '?' -and ([int]$year -lt $s.From -or [int]$year -gt $s.To)) { continue }
+        if ($text -notmatch $s.Match) { continue }
         if ($found.Contains($l.itemId)) { continue }
 
         $price = switch ($l.priceInfo.priceType) {
@@ -48,6 +58,7 @@ foreach ($s in $searches) {
             Image = if ($l.pictures) { $l.pictures[0].largeUrl } else { $null }
         }
     }
+  }
 }
 
 $new = @($found.Values | Where-Object { -not $seen.ContainsKey($_.Id) })
